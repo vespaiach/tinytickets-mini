@@ -3,8 +3,19 @@ import { listShows, findShow } from "../repositories/show-repository.ts";
 
 export const showsRouter = express.Router();
 
+// The show list rarely changes, so GET /shows keeps it for 30 seconds
+// instead of rebuilding it on every request.
+const SHOWS_CACHE_MS = 30_000;
+let cachedShows: ReturnType<typeof listShows> | null = null;
+let cachedAt = 0;
+
 showsRouter.get("/shows", (_req, res) => {
-  res.json(listShows());
+  const now = Date.now();
+  if (cachedShows === null || now - cachedAt >= SHOWS_CACHE_MS) {
+    cachedShows = listShows();
+    cachedAt = now;
+  }
+  res.json(cachedShows);
 });
 
 showsRouter.get("/shows/:id", (req, res) => {
