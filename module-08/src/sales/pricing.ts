@@ -1,6 +1,6 @@
 import { bookingFeeCents } from "./booking-fee.ts";
 
-export type TicketType = "standard" | "student" | "vip";
+export type TicketType = "standard" | "student" | "vip" | "vip-student";
 export type OrderLine = { type: TicketType; quantity: number };
 export type Quote = { ticketsCents: number; bookingFeeCents: number; totalCents: number };
 
@@ -18,16 +18,27 @@ export function ticketPriceCents(showPriceCents: number, type: TicketType): numb
   return showPriceCents;
 }
 
+// VIP student: the VIP price with the student discount.
+export function comboTotalCents(showPriceCents: number, quantity: number): number {
+  const vipCents = showPriceCents + VIP_EXTRA_CENTS;
+  const eachCents = vipCents - Math.round((vipCents * STUDENT_PERCENT_OFF) / 100);
+  return eachCents * quantity + bookingFeeCents(quantity);
+}
+
 // Every ticket, then the booking fee once for the whole order.
 export function quoteOrder(showPriceCents: number, lines: OrderLine[], percentOff = 0): Quote {
   let ticketCount = 0;
   let ticketsCents = 0;
   for (const line of lines) {
-    let unitCents = ticketPriceCents(showPriceCents, line.type);
-    if (line.type !== "student") {
-      unitCents -= Math.round((unitCents * percentOff) / 100);
+    if (line.type === "vip-student") {
+      ticketsCents += comboTotalCents(showPriceCents, line.quantity);
+    } else {
+      let unitCents = ticketPriceCents(showPriceCents, line.type);
+      if (line.type !== "student") {
+        unitCents -= Math.round((unitCents * percentOff) / 100);
+      }
+      ticketsCents += unitCents * line.quantity;
     }
-    ticketsCents += unitCents * line.quantity;
     ticketCount += line.quantity;
   }
   const feeCents = bookingFeeCents(ticketCount);

@@ -5,7 +5,7 @@ import { quoteOrder, type OrderLine } from "../sales/pricing.ts";
 
 export const ordersRouter = express.Router();
 
-const TYPES: string[] = ["standard", "student", "vip"];
+const TYPES: string[] = ["standard", "student", "vip", "vip-student"];
 
 // Returns an error message, or null when every line is valid.
 function checkLines(lines: unknown): string | null {
@@ -14,7 +14,7 @@ function checkLines(lines: unknown): string | null {
   }
   for (const line of lines) {
     if (!TYPES.includes(line?.type)) {
-      return "each line needs a type: standard, student or vip";
+      return "each line needs a type: standard, student, vip or vip-student";
     }
     if (!Number.isInteger(line.quantity) || line.quantity < 1) {
       return "each line needs a whole quantity of at least 1";
