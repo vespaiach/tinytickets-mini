@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": ["Bash(npm test)", "Bash(npm run check:routes)", "Bash(node --test *)"],
+    "ask": ["Bash(git push *)"],
+    "deny": ["Read(./.env)", "Edit(./scripts/check-routes.ts)"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node", "args": ["${CLAUDE_PROJECT_DIR}/scripts/check-routes.ts"] }
+        ]
+      }
+    ]
+  }
+}
